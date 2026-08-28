@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Bot</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#0d1117; color:#e6edf3; max-width:420px; margin:40px auto; padding:0 16px; }
+  h1 { font-size:1.3rem; }
+  .card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:20px; margin-top:16px; }
+  input { width:100%; box-sizing:border-box; padding:10px; border-radius:6px; border:1px solid #30363d; background:#0d1117; color:#e6edf3; margin-bottom:10px; }
+  button { width:100%; padding:10px; border:0; border-radius:6px; background:#238636; color:#fff; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:0.5; }
+  .codigo { font-size:2rem; letter-spacing:4px; text-align:center; margin:16px 0; font-weight:700; color:#3fb950; }
+  .status { font-size:0.9rem; color:#8b949e; margin-top:10px; }
+  .erro { color:#f85149; font-size:0.9rem; }
+</style>
+</head>
+<body>
+  <h1>📱 Painel de conexão</h1>
+  <div class="card">
+    <div id="statusAtual" class="status">Verificando status...</div>
+  </div>
+
+  <div class="card" id="formCard">
+    <label>Senha do painel</label>
+    <input id="senha" type="password" placeholder="Senha">
+    <label>Número (com DDI, ex: 5511999999999)</label>
+    <input id="numero" type="tel" placeholder="5511999999999">
+    <button id="btnParear">Gerar código de pareamento</button>
+    <div id="erro" class="erro"></div>
+    <div id="codigo" class="codigo"></div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('statusAtual');
+    const erroEl = document.getElementById('erro');
+    const codigoEl = document.getElementById('codigo');
+
+    async function atualizarStatus() {
+      try {
+        const r = await fetch('/api/status');
+        const d = await r.json();
+        const textos = {
+          'iniciando': '⏳ Iniciando...',
+          'aguardando-pareamento': '🟡 Aguardando pareamento — digite seu número abaixo',
+          'conectado': '🟢 Conectado ao WhatsApp',
+          'desconectado': '🔴 Desconectado — reconectando...',
+        };
+        statusEl.textContent = textos[d.status] || d.status;
+        if (d.status === 'conectado') {
+          document.getElementById('formCard').style.display = 'none';
+        }
+      } catch (e) { /* ignora */ }
+    }
+
+    document.getElementById('btnParear').addEventListener('click', async () => {
+      erroEl.textContent = '';
+      codigoEl.textContent = '';
+      const senha = document.getElementById('senha').value;
+      const numero = document.getElementById('numero').value;
+      try {
+        const r = await fetch('/api/parear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ senha, numero }),
+        });
+        const d = await r.json();
+        if (!r.ok) { erroEl.textContent = d.erro || 'Erro ao gerar código.'; return; }
+        codigoEl.textContent = d.codigo;
+      } catch (e) {
+        erroEl.textContent = 'Falha na conexão com o servidor.';
+      }
+    });
+
+    atualizarStatus();
+    setInterval(atualizarStatus, 3000);
+  </script>
+</body>
+</html>

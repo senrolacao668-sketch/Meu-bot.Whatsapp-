@@ -1,0 +1,14 @@
+# Sessão do WhatsApp — NUNCA suba isso pro GitHub, dá acesso total à sua conta
+auth_info/
+
+# Variáveis de ambiente com segredos
+.env
+
+# Dependências
+node_modules/
+
+# Temporários de figurinha
+temp/
+
+# Logs
+*.log
