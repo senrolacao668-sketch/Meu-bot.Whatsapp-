@@ -10,7 +10,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@whiskeysockets/baileys": "7.0.0-rc14",
     "express": "^4.19.2",
     "fluent-ffmpeg": "^2.1.2",
     "node-webpmux": "^3.2.1",
