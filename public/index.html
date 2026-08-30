@@ -18,11 +18,18 @@
 </head>
 <body>
   <h1>📱 Painel de conexão</h1>
+
   <div class="card">
     <div id="statusAtual" class="status">Verificando status...</div>
   </div>
 
+  <div class="card" id="qrCard" style="display:none; text-align:center;">
+    <p style="color:#8b949e; margin-bottom:10px;">📷 Escaneie com a câmera do WhatsApp<br>(Dispositivos conectados → Conectar dispositivo → Escanear QR code)</p>
+    <img id="qrImg" style="width:100%; max-width:280px; border-radius:8px;" />
+  </div>
+
   <div class="card" id="formCard">
+    <p style="color:#8b949e; font-size:0.85rem; margin-top:0;">Alternativa: pareamento por código numérico (pode estar instável no momento — prefira o QR acima)</p>
     <label>Senha do painel</label>
     <input id="senha" type="password" placeholder="Senha">
     <label>Número (com DDI, ex: 5511999999999)</label>
@@ -36,6 +43,8 @@
     const statusEl = document.getElementById('statusAtual');
     const erroEl = document.getElementById('erro');
     const codigoEl = document.getElementById('codigo');
+    const qrCard = document.getElementById('qrCard');
+    const qrImg = document.getElementById('qrImg');
 
     async function atualizarStatus() {
       try {
@@ -43,11 +52,19 @@
         const d = await r.json();
         const textos = {
           'iniciando': '⏳ Iniciando...',
-          'aguardando-pareamento': '🟡 Aguardando pareamento — digite seu número abaixo',
+          'aguardando-pareamento': '🟡 Aguardando pareamento',
           'conectado': '🟢 Conectado ao WhatsApp',
           'desconectado': '🔴 Desconectado — reconectando...',
         };
         statusEl.textContent = textos[d.status] || d.status;
+
+        if (d.qr && d.status !== 'conectado') {
+          qrCard.style.display = 'block';
+          qrImg.src = d.qr;
+        } else {
+          qrCard.style.display = 'none';
+        }
+
         if (d.status === 'conectado') {
           document.getElementById('formCard').style.display = 'none';
         }
