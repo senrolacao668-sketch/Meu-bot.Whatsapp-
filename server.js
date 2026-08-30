@@ -7,7 +7,7 @@
 const express = require('express');
 const path = require('path');
 const config = require('./config');
-const { conectar, solicitarCodigo, getStatus, getUltimoCodigo, eventos } = require('./bot');
+const { conectar, solicitarCodigo, getStatus, getUltimoCodigo, getUltimoQR, eventos } = require('./bot');
 
 const app = express();
 app.use(express.json());
@@ -23,7 +23,7 @@ function checarSenha(req, res, next) {
 }
 
 app.get('/api/status', (req, res) => {
-  res.json({ status: getStatus(), codigo: getUltimoCodigo() });
+  res.json({ status: getStatus(), codigo: getUltimoCodigo(), qr: getUltimoQR() });
 });
 
 app.post('/api/parear', checarSenha, async (req, res) => {
