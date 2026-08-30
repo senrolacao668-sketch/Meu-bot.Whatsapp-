@@ -13,6 +13,7 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const pino = require('pino');
+const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 const { EventEmitter } = require('events');
@@ -25,6 +26,7 @@ const eventos = new EventEmitter();
 let sock = null;
 let status = 'iniciando';
 let ultimoCodigo = null;
+let ultimoQR = null; // data URL (imagem) do QR code, alternativa ao pairing code
 
 function carregarComandos() {
   const pasta = path.join(__dirname, 'comandos');
@@ -62,11 +64,21 @@ async function conectar() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  sock.ev.on('connection.update', (update) => {
-    const { connection, lastDisconnect } = update;
+  sock.ev.on('connection.update', async (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      try {
+        ultimoQR = await QRCode.toDataURL(qr);
+        eventos.emit('qr', ultimoQR);
+      } catch (e) {
+        console.error('❌ Erro ao gerar imagem do QR code:', e);
+      }
+    }
 
     if (connection === 'open') {
       status = 'conectado';
+      ultimoQR = null;
       eventos.emit('status', status);
       console.log(`✅ ${config.NOME_BOT} conectado com sucesso!`);
     }
@@ -158,4 +170,8 @@ function getUltimoCodigo() {
   return ultimoCodigo;
 }
 
-module.exports = { conectar, solicitarCodigo, getStatus, getUltimoCodigo, eventos };
+function getUltimoQR() {
+  return ultimoQR;
+}
+
+module.exports = { conectar, solicitarCodigo, getStatus, getUltimoCodigo, getUltimoQR, eventos };
